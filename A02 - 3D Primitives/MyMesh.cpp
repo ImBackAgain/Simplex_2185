@@ -276,8 +276,37 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	// -------------------------------
+	//GenerateCube(a_fRadius * 2.0f, a_v3Color);
+
+	vector3 up = a_fHeight / 2 * AXIS_Y;
+	//To the center of the top face
+
+	float angleDel = 2 * PI / a_nSubdivisions;
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		//Big cheeese alert:
+		//Since the "quad" is just two tris, I use it to make the sloped side tri and the botttom tri at a time
+		//Yes, I make a botttom face because why not
+		AddQuad(
+			//The center of the base
+			-up,
+
+			//One point on the base circumference
+			a_fRadius * vector3(cos(i * angleDel), 0, sin(i * angleDel))
+				-up,
+
+			//The next point along the base
+			a_fRadius * vector3(cos((i + 1) * angleDel), 0, sin((i + 1) * angleDel))
+				-up,
+				
+			//Top of cone
+			up
+		);
+		//I got it first try! JK it toook at least four
+		
+	}
+
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -300,7 +329,55 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	float angleDel = 2 * PI / a_nSubdivisions;
+
+	vector3 up = a_fHeight / 2 * AXIS_Y;
+	//To the center of the top face
+
+	vector3 thisXZVector = ZERO_V3, //Because it gets rewrittten immmediately in the looop
+	nextXZVector = a_fRadius * AXIS_X;
+	//Vectors holding the 2D displacement
+	//Change in the looop
+
+	
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		thisXZVector = nextXZVector;
+		nextXZVector = a_fRadius * vector3(cos((i + 1) * angleDel), 0, sin((i + 1) * angleDel));
+		
+		//Top
+		AddTri(
+			//Top of center
+			up,
+
+			//Second circumference point
+			up + nextXZVector,
+
+			//First circumference point
+			up + thisXZVector
+		);
+
+		//Side
+		AddQuad(
+			up + thisXZVector,
+			up + nextXZVector,
+		   -up + thisXZVector,
+		   -up + nextXZVector
+		);
+
+		//Botttom
+		AddTri(
+			//Botttom of center
+			-up,
+
+			//First circumference point
+			-up + thisXZVector,
+
+			//Second circumference point
+			-up + nextXZVector
+		);
+	}
 	// -------------------------------
 
 	// Adding information about color
@@ -330,7 +407,57 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	//GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+
+	float angleDel = 2 * PI / a_nSubdivisions;
+
+	vector3 up = a_fHeight / 2 * AXIS_Y;
+	//To the center of the top face
+
+	vector3 thisXZVector = ZERO_V3,
+	nextXZVector = AXIS_X;
+	//This time they're unit
+
+
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		thisXZVector = nextXZVector;
+		nextXZVector = vector3(cos((i + 1) * angleDel), 0, sin((i + 1) * angleDel));
+		
+		//Top
+		AddQuad(
+			up + a_fInnerRadius * thisXZVector,
+			up + a_fInnerRadius * nextXZVector,
+			up + a_fOuterRadius * thisXZVector,
+			up + a_fOuterRadius * nextXZVector
+		);
+
+		//Botttom
+		AddQuad(
+			-up + a_fInnerRadius * nextXZVector,
+			-up + a_fInnerRadius * thisXZVector,
+			-up + a_fOuterRadius * nextXZVector,
+			-up + a_fOuterRadius * thisXZVector
+		);
+
+		//Outside
+		AddQuad(
+			 up + a_fOuterRadius * thisXZVector,
+			 up + a_fOuterRadius * nextXZVector,
+			-up + a_fOuterRadius * thisXZVector,
+			-up + a_fOuterRadius * nextXZVector
+		);
+
+		//Inside
+		AddQuad(
+			 up + a_fInnerRadius * nextXZVector,
+			 up + a_fInnerRadius * thisXZVector,
+			-up + a_fInnerRadius * nextXZVector,
+			-up + a_fInnerRadius * thisXZVector
+		);
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -361,8 +488,65 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Release();
 	Init();
 
+
+
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+	//GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+	float donutRadius = (a_fInnerRadius + a_fOuterRadius) / 2;
+	float tubeRadius = a_fOuterRadius - donutRadius;
+
+
+	//I asssume the a subdivisions are "donut" (about axis of symmmetry of the whole)
+	//and the b is "tube" (subdivisions of tube that the torus is made of)
+
+	float angleDelA = 2 * PI / a_nSubdivisionsA;
+	float angleDelB = 2 * PI / a_nSubdivisionsB;
+
+	vector3 thisXZVector = ZERO_V3,
+		nextXZVector = AXIS_X;
+	
+
+	for (size_t a = 0; a < a_nSubdivisionsA; a++)
+	{
+		thisXZVector = nextXZVector;
+		nextXZVector = vector3(cos((a + 1) * angleDelA), 0, sin((a + 1) * angleDelA));
+
+		
+		vector3 thisUp, nextUp = ZERO_V3;
+		//Distances from XZ
+
+		float thisNetRadius, nextNetRadius = tubeRadius + donutRadius;
+		//Distance from Y axis
+
+		for (size_t b = 0; b < a_nSubdivisionsB; b++)
+		{
+			thisUp = nextUp;
+			nextUp = tubeRadius * sin((b + 1) * angleDelB) * AXIS_Y;
+
+			thisNetRadius = nextNetRadius;
+			nextNetRadius = donutRadius + tubeRadius * cos((b + 1) * angleDelB);
+
+			AddQuad(
+				nextUp + nextNetRadius * thisXZVector,
+				nextUp + nextNetRadius * nextXZVector,
+				thisUp + thisNetRadius * thisXZVector,
+				thisUp + thisNetRadius * nextXZVector
+			);
+		}
+		// First compile result:
+		// Works perfectly
+		// ...
+		// I can't...
+		// I can't believe this.
+		// I just got it.
+		// On my first compile.
+		//
+		// I wish you a goood day.
+		// I wish that I might be able to share my currrent happpinesss.
+		// So I wish that you have as goood a day as I have had.
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -387,7 +571,10 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	//I wanted to get creative.
+	//As long as we don't have to UV map this sphere, I'm safe.
+
+
 	// -------------------------------
 
 	// Adding information about color
