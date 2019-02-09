@@ -12,6 +12,17 @@ void MyMesh::GenerateCircle(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	if (a_nSubdivisions > 360)
 		a_nSubdivisions = 360;
 
+	float angleDel = 2 * PI / a_nSubdivisions;
+
+	for (size_t i = 0; i < a_nSubdivisions; i++)
+	{
+		float thisAngle = i * angleDel;
+		float nextAngle = (i + 1) * angleDel;
+		//This is very uncharacteristic of me.
+
+		AddTri(ZERO_V3, vector3(a_fRadius * cos(thisAngle), a_fRadius * sin(thisAngle), 0), vector3(a_fRadius * cos(nextAngle), a_fRadius * sin(nextAngle), 0));
+	}
+
 	/*
 		Calculate a_nSubdivisions number of points around a center point in a radial manner
 		then call the AddTri function to generate a_nSubdivision number of faces
