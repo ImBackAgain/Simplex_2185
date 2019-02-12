@@ -31,13 +31,13 @@ void Application::Display(void)
 	value += 0.01f;
 
 	//matrix4 m4Model = m4Translate * m4Scale;
-	matrix4 m4Model = m4Scale * m4Translate;
+	matrix4 m4Model = m4Scale;// *m4Translate;
 
 	m_pMesh->Render(m4Projection, m4View, m4Model);
 	
 	// draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
-	
+	m_pMeshMngr->AddGridToRenderList();
 	//render list call
 	m_uRenderCallCount = m_pMeshMngr->Render();
 

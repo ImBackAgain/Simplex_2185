@@ -105,7 +105,7 @@ void MyMesh::CompileOpenGL3X(void)
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);//Bind the VBO
 	glBufferData(GL_ARRAY_BUFFER, m_uVertexCount * 2 * sizeof(vector3), &m_lVertex[0], GL_STATIC_DRAW);//Generate space for the VBO
 
-	// Position attribute
+																									   // Position attribute
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 2 * sizeof(vector3), (GLvoid*)0);
 
@@ -121,7 +121,7 @@ void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 {
 	// Use the buffer and shader
 	GLuint nShader = m_pShaderMngr->GetShaderID("Basic");
-	glUseProgram(nShader); 
+	glUseProgram(nShader);
 
 	//Bind the VAO of this object
 	glBindVertexArray(m_VAO);
@@ -133,11 +133,11 @@ void MyMesh::Render(matrix4 a_mProjection, matrix4 a_mView, matrix4 a_mModel)
 	//Final Projection of the Camera
 	matrix4 m4MVP = a_mProjection * a_mView * a_mModel;
 	glUniformMatrix4fv(MVP, 1, GL_FALSE, glm::value_ptr(m4MVP));
-	
+
 	//Solid
 	glUniform3f(wire, -1.0f, -1.0f, -1.0f);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	glDrawArrays(GL_TRIANGLES, 0, m_uVertexCount);  
+	glDrawArrays(GL_TRIANGLES, 0, m_uVertexCount);
 
 	//Wire
 	glUniform3f(wire, 1.0f, 0.0f, 1.0f);
@@ -153,8 +153,8 @@ void MyMesh::AddTri(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTo
 {
 	//C
 	//| \
-	//A--B
-	//This will make the triangle A->B->C 
+		//A--B
+//This will make the triangle A->B->C 
 	AddVertexPosition(a_vBottomLeft);
 	AddVertexPosition(a_vBottomRight);
 	AddVertexPosition(a_vTopLeft);
@@ -186,17 +186,17 @@ void MyMesh::GenerateCube(float a_fSize, vector3 a_v3Color)
 	//|  |
 	//0--1
 
-	vector3 point0(-fValue,-fValue, fValue); //0
-	vector3 point1( fValue,-fValue, fValue); //1
-	vector3 point2( fValue, fValue, fValue); //2
+	vector3 point0(-fValue, -fValue, fValue); //0
+	vector3 point1(fValue, -fValue, fValue); //1
+	vector3 point2(fValue, fValue, fValue); //2
 	vector3 point3(-fValue, fValue, fValue); //3
 
-	vector3 point4(-fValue,-fValue,-fValue); //4
-	vector3 point5( fValue,-fValue,-fValue); //5
-	vector3 point6( fValue, fValue,-fValue); //6
-	vector3 point7(-fValue, fValue,-fValue); //7
+	vector3 point4(-fValue, -fValue, -fValue); //4
+	vector3 point5(fValue, -fValue, -fValue); //5
+	vector3 point6(fValue, fValue, -fValue); //6
+	vector3 point7(-fValue, fValue, -fValue); //7
 
-	//F
+											  //F
 	AddQuad(point0, point1, point3, point2);
 
 	//B
@@ -237,7 +237,7 @@ void MyMesh::GenerateCuboid(vector3 a_v3Dimensions, vector3 a_v3Color)
 	vector3 point6(v3Value.x, v3Value.y, -v3Value.z); //6
 	vector3 point7(-v3Value.x, v3Value.y, -v3Value.z); //7
 
-	//F
+													   //F
 	AddQuad(point0, point1, point3, point2);
 
 	//B
@@ -276,37 +276,12 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	//GenerateCube(a_fRadius * 2.0f, a_v3Color);
-
-	vector3 up = a_fHeight / 2 * AXIS_Y;
-	//To the center of the top face
-
-	float angleDel = 2 * PI / a_nSubdivisions;
-
-	for (int i = 0; i < a_nSubdivisions; i++)
-	{
-		//Big cheeese alert:
-		//Since the "quad" is just two tris, I use it to make the sloped side tri and the botttom tri at a time
-		//Yes, I make a botttom face because why not
-		AddQuad(
-			//The center of the base
-			-up,
-
-			//One point on the base circumference
-			a_fRadius * vector3(cos(i * angleDel), 0, sin(i * angleDel))
-				-up,
-
-			//The next point along the base
-			a_fRadius * vector3(cos((i + 1) * angleDel), 0, sin((i + 1) * angleDel))
-				-up,
-				
-			//Top of cone
-			up
-		);
-		//I got it first try! JK it toook at least four
-		
-	}
-
+	Mesh* pMesh = new Mesh();
+	pMesh->GenerateCone(a_fRadius, a_fHeight, a_nSubdivisions, a_v3Color);
+	m_lVertexPos = pMesh->GetVertexList();
+	m_uVertexCount = m_lVertexPos.size();
+	SafeDelete(pMesh);
+	// -------------------------------
 
 	// Adding information about color
 	CompleteMesh(a_v3Color);
@@ -329,55 +304,11 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	//GenerateCube(a_fRadius * 2.0f, a_v3Color);
-	float angleDel = 2 * PI / a_nSubdivisions;
-
-	vector3 up = a_fHeight / 2 * AXIS_Y;
-	//To the center of the top face
-
-	vector3 thisXZVector = ZERO_V3, //Because it gets rewrittten immmediately in the looop
-	nextXZVector = a_fRadius * AXIS_X;
-	//Vectors holding the 2D displacement
-	//Change in the looop
-
-	
-	for (int i = 0; i < a_nSubdivisions; i++)
-	{
-		thisXZVector = nextXZVector;
-		nextXZVector = a_fRadius * vector3(cos((i + 1) * angleDel), 0, sin((i + 1) * angleDel));
-		
-		//Top
-		AddTri(
-			//Top of center
-			up,
-
-			//Second circumference point
-			up + nextXZVector,
-
-			//First circumference point
-			up + thisXZVector
-		);
-
-		//Side
-		AddQuad(
-			up + thisXZVector,
-			up + nextXZVector,
-		   -up + thisXZVector,
-		   -up + nextXZVector
-		);
-
-		//Botttom
-		AddTri(
-			//Botttom of center
-			-up,
-
-			//First circumference point
-			-up + thisXZVector,
-
-			//Second circumference point
-			-up + nextXZVector
-		);
-	}
+	Mesh* pMesh = new Mesh();
+	pMesh->GenerateCylinder(a_fRadius, a_fHeight, a_nSubdivisions, a_v3Color);
+	m_lVertexPos = pMesh->GetVertexList();
+	m_uVertexCount = m_lVertexPos.size();
+	SafeDelete(pMesh);
 	// -------------------------------
 
 	// Adding information about color
@@ -407,57 +338,11 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	//GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-
-
-	float angleDel = 2 * PI / a_nSubdivisions;
-
-	vector3 up = a_fHeight / 2 * AXIS_Y;
-	//To the center of the top face
-
-	vector3 thisXZVector = ZERO_V3,
-	nextXZVector = AXIS_X;
-	//This time they're unit
-
-
-	for (int i = 0; i < a_nSubdivisions; i++)
-	{
-		thisXZVector = nextXZVector;
-		nextXZVector = vector3(cos((i + 1) * angleDel), 0, sin((i + 1) * angleDel));
-		
-		//Top
-		AddQuad(
-			up + a_fInnerRadius * thisXZVector,
-			up + a_fInnerRadius * nextXZVector,
-			up + a_fOuterRadius * thisXZVector,
-			up + a_fOuterRadius * nextXZVector
-		);
-
-		//Botttom
-		AddQuad(
-			-up + a_fInnerRadius * nextXZVector,
-			-up + a_fInnerRadius * thisXZVector,
-			-up + a_fOuterRadius * nextXZVector,
-			-up + a_fOuterRadius * thisXZVector
-		);
-
-		//Outside
-		AddQuad(
-			 up + a_fOuterRadius * thisXZVector,
-			 up + a_fOuterRadius * nextXZVector,
-			-up + a_fOuterRadius * thisXZVector,
-			-up + a_fOuterRadius * nextXZVector
-		);
-
-		//Inside
-		AddQuad(
-			 up + a_fInnerRadius * nextXZVector,
-			 up + a_fInnerRadius * thisXZVector,
-			-up + a_fInnerRadius * nextXZVector,
-			-up + a_fInnerRadius * thisXZVector
-		);
-	}
-
+	Mesh* pMesh = new Mesh();
+	pMesh->GenerateTube(a_fOuterRadius, a_fInnerRadius, a_fHeight, a_nSubdivisions, a_v3Color);
+	m_lVertexPos = pMesh->GetVertexList();
+	m_uVertexCount = m_lVertexPos.size();
+	SafeDelete(pMesh);
 	// -------------------------------
 
 	// Adding information about color
@@ -488,65 +373,12 @@ void MyMesh::GenerateTorus(float a_fOuterRadius, float a_fInnerRadius, int a_nSu
 	Release();
 	Init();
 
-
-
 	// Replace this with your code
-	//GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
-
-	float donutRadius = (a_fInnerRadius + a_fOuterRadius) / 2;
-	float tubeRadius = a_fOuterRadius - donutRadius;
-
-
-	//I asssume the a subdivisions are "donut" (about axis of symmmetry of the whole)
-	//and the b is "tube" (subdivisions of tube that the torus is made of)
-
-	float angleDelA = 2 * PI / a_nSubdivisionsA;
-	float angleDelB = 2 * PI / a_nSubdivisionsB;
-
-	vector3 thisXZVector = ZERO_V3,
-		nextXZVector = AXIS_X;
-	
-
-	for (size_t a = 0; a < a_nSubdivisionsA; a++)
-	{
-		thisXZVector = nextXZVector;
-		nextXZVector = vector3(cos((a + 1) * angleDelA), 0, sin((a + 1) * angleDelA));
-
-		
-		vector3 thisUp, nextUp = ZERO_V3;
-		//Distances from XZ
-
-		float thisNetRadius, nextNetRadius = tubeRadius + donutRadius;
-		//Distance from Y axis
-
-		for (size_t b = 0; b < a_nSubdivisionsB; b++)
-		{
-			thisUp = nextUp;
-			nextUp = tubeRadius * sin((b + 1) * angleDelB) * AXIS_Y;
-
-			thisNetRadius = nextNetRadius;
-			nextNetRadius = donutRadius + tubeRadius * cos((b + 1) * angleDelB);
-
-			AddQuad(
-				nextUp + nextNetRadius * thisXZVector,
-				nextUp + nextNetRadius * nextXZVector,
-				thisUp + thisNetRadius * thisXZVector,
-				thisUp + thisNetRadius * nextXZVector
-			);
-		}
-		// First compile result:
-		// Works perfectly
-		// ...
-		// I can't...
-		// I can't believe this.
-		// I just got it.
-		// On my first compile.
-		//
-		// I wish you a goood day.
-		// I wish that I might be able to share my currrent happpinesss.
-		// So I wish that you have as goood a day as I have had.
-	}
-
+	Mesh* pMesh = new Mesh();
+	pMesh->GenerateTorus(a_fOuterRadius, a_fInnerRadius, a_nSubdivisionsA, a_nSubdivisionsB, a_v3Color);
+	m_lVertexPos = pMesh->GetVertexList();
+	m_uVertexCount = m_lVertexPos.size();
+	SafeDelete(pMesh);
 	// -------------------------------
 
 	// Adding information about color
@@ -559,58 +391,25 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 		a_fRadius = 0.01f;
 
 	//Sets minimum and maximum of subdivisions
-	if (a_nSubdivisions <= 1)
+	if (a_nSubdivisions < 1)
 	{
-		a_nSubdivisions = 2;
+		GenerateCube(a_fRadius * 2.0f, a_v3Color);
+		return;
 	}
 	if (a_nSubdivisions > 6)
 		a_nSubdivisions = 6;
 
-
 	Release();
 	Init();
 
-
-
+	// Replace this with your code
+	Mesh* pMesh = new Mesh();
+	pMesh->GenerateSphere(a_fRadius, a_nSubdivisions, a_v3Color);
+	m_lVertexPos = pMesh->GetVertexList();
+	m_uVertexCount = m_lVertexPos.size();
+	SafeDelete(pMesh);
 	// -------------------------------
 
-	float angleDel = PI / a_nSubdivisions;
-	//Number of latitude divisions
-	//Twice as many "longitude" divisions as "latitude"
-
-	vector3 up = a_fRadius * AXIS_Y;
-
-	float thisTheta; float nexttTheta = 0;
-
-	vector3 thisXY; vector3 nextXY = AXIS_X * a_fRadius;
-
-	for (int i = 0; i < 2 * a_nSubdivisions; i++)
-	{
-		thisXY = nextXY;
-		nextXY = a_fRadius * vector3(cos(angleDel * (i + 1)), 0, sin(angleDel * (i + 1)));
-
-		thisTheta = nexttTheta;
-		nexttTheta += angleDel;
-
-		AddTri(up, up * cos(angleDel) + nextXY * sin(angleDel), up * cos(angleDel) + thisXY * sin(angleDel));
-
-		float thisPhi; float nextPhi = 0;
-		//"Phi"
-		//actuallly an angle measured from the positive y axis
-
-		for (int j = 1; j < a_nSubdivisions; j++)
-		{
-			printf("h");
-			thisPhi = nextPhi;
-			nextPhi += angleDel;
-			AddQuad(up * cos(thisPhi) + thisXY * sin(thisPhi), 
-																up * cos(thisPhi) + nextXY * sin(thisPhi),
-					up * cos(nextPhi) + thisXY * sin(nextPhi), 
-																up * cos(nextPhi) + nextXY * sin(nextPhi));
-		}
-
-		AddTri(-up * cos(angleDel) + thisXY * sin(angleDel), -up * cos(angleDel) + nextXY * sin(angleDel), -up);
-	}
 	// Adding information about color
 	CompleteMesh(a_v3Color);
 	CompileOpenGL3X();
