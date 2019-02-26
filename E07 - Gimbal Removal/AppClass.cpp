@@ -25,7 +25,7 @@ void Application::Display(void)
 	matrix4 m4View = m_pCameraMngr->GetViewMatrix();
 	matrix4 m4Projection = m_pCameraMngr->GetProjectionMatrix();
 
-	static quaternion qRotation = IDENTITY_QUAT;
+	//static quaternion qRotation = IDENTITY_QUAT;
 
 	if (m_v3Rotation.x == 14)
 	{
