@@ -414,6 +414,15 @@ void Application::ProcessKeyboard(void)
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
 		m_pCameraMngr->MoveVertical(fSpeed);
 #pragma endregion
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+	{
+		
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift))
+		{
+
+		}
+	}
 }
 //Joystick
 void Application::ProcessJoystick(void)

@@ -153,8 +153,9 @@ void MyMesh::AddTri(vector3 a_vBottomLeft, vector3 a_vBottomRight, vector3 a_vTo
 {
 	//C
 	//| \
-		//A--B
-//This will make the triangle A->B->C 
+	//A--B
+	//This will make the triangle A->B->C 
+											//No it won't!
 	AddVertexPosition(a_vBottomLeft);
 	AddVertexPosition(a_vBottomRight);
 	AddVertexPosition(a_vTopLeft);
