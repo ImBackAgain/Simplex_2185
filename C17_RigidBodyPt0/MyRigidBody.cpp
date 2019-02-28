@@ -100,8 +100,16 @@ MyRigidBody::~MyRigidBody(){Release();};
 //--- Non Standard Singleton Methods
 void MyRigidBody::AddToRenderList(void)
 {
-	if (!m_bVisible)
-		return;
+	matrix4 hardCoded = glm::translate(glm::scale(IDENTITY_M4, vector3(0.7, 2, 0.7)), 
+		/*
+		AXIS_Y + AXIS_X
+		/*/
+		ZERO_V3
+		//*/
+		);
+	if (m_bVisible)
+		m_pMeshMngr->AddWireCubeToRenderList(hardCoded, C_RED, RENDER_SOLID);
+	return;
 }
 bool MyRigidBody::IsColliding(MyRigidBody* const other)
 {

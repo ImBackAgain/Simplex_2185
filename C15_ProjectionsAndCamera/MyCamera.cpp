@@ -5,8 +5,8 @@ using namespace Simplex;
 void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3Position; }
 vector3 Simplex::MyCamera::GetPosition(void) { return m_v3Position; }
 
-void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Target = a_v3Target; }
-vector3 Simplex::MyCamera::GetTarget(void) { return m_v3Target; }
+void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Forward = a_v3Target; }
+vector3 Simplex::MyCamera::GetTarget(void) { return m_v3Forward; }
 
 void Simplex::MyCamera::SetUp(vector3 a_v3Up) { m_v3Up = a_v3Up; }
 vector3 Simplex::MyCamera::GetUp(void) { return m_v3Up; }
@@ -22,13 +22,13 @@ Simplex::MyCamera::MyCamera()
 Simplex::MyCamera::MyCamera(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward)
 {
 	Init(); //Initialize the object
-	SetPositionTargetAndUpward(a_v3Position, a_v3Target, a_v3Upward); //set the position, target and up
+	SetPositionAndOrientation(a_v3Position, a_v3Target, a_v3Upward); //set the position, target and up
 }
 
 Simplex::MyCamera::MyCamera(MyCamera const& other)
 {
 	m_v3Position = other.m_v3Position;
-	m_v3Target = other.m_v3Target;
+	m_v3Forward = other.m_v3Forward;
 	m_v3Up = other.m_v3Up;
 
 	m_v3Forward = other.m_v3Forward;
@@ -44,7 +44,7 @@ MyCamera& Simplex::MyCamera::operator=(MyCamera const& other)
 	if (this != &other)
 	{
 		Release();
-		SetPositionTargetAndUpward(other.m_v3Position, other.m_v3Target, other.m_v3Upward);
+		SetPositionAndOrientation(other.m_v3Position, other.m_v3Forward, other.m_v3Upward);
 		MyCamera temp(other);
 		Swap(temp);
 	}
@@ -67,7 +67,7 @@ void Simplex::MyCamera::Release(void)
 void Simplex::MyCamera::Swap(MyCamera & other)
 {
 	std::swap(m_v3Position, other.m_v3Position);
-	std::swap(m_v3Target, other.m_v3Target);
+	std::swap(m_v3Forward, other.m_v3Forward);
 	std::swap(m_v3Up, other.m_v3Up);
 
 	std::swap(m_v3Forward, other.m_v3Forward);
@@ -86,7 +86,7 @@ Simplex::MyCamera::~MyCamera(void)
 void Simplex::MyCamera::ResetCamera(void)
 {
 	m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
-	m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
+	m_v3Forward = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
 
 	m_v3Forward = vector3(0.0f, 0.0f, -1.0f); //View vector
@@ -94,16 +94,16 @@ void Simplex::MyCamera::ResetCamera(void)
 	m_v3Rightwart = vector3(0.0f, 1.0f, 0.0f); //What is to my right
 }
 
-void Simplex::MyCamera::SetPositionTargetAndUpward(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward)
+void Simplex::MyCamera::SetPositionAndOrientation(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward)
 {
 	m_v3Position = a_v3Position;
-	m_v3Target = a_v3Target;
+	m_v3Forward = a_v3Target;
 	m_v3Up = a_v3Upward;
 }
 
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
-	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Up);
+	m_m4View = glm::lookAt(m_v3Position, m_v3Forward, m_v3Up);
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)

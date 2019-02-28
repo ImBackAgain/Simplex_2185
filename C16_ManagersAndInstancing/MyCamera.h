@@ -13,7 +13,7 @@ namespace Simplex
 class MyCamera
 {
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
-	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
+	vector3 m_v3Forward = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
@@ -196,7 +196,7 @@ public:
 	-	vector3 a_v3Upward -> What is up
 	OUTPUT: ---
 	*/
-	void SetPositionTargetAndUpward(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward = AXIS_Y);
+	void SetPositionAndOrientation(vector3 a_v3Position, vector3 a_v3Target, vector3 a_v3Upward = AXIS_Y);
 
 	/*
 	USAGE: Calculate what the camera should be looking at with the values of position target and up

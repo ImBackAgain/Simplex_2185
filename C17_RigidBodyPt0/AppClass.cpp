@@ -14,16 +14,16 @@ void Application::InitVariables(void)
 
 	//creeper
 	m_pCreeper = new Model();
-	m_pCreeper->Load("Sorted\\SphereCube.fbx");
-	//m_pCreeper->Load("Minecraft\\Creeper.obj");
+	//m_pCreeper->Load("Sorted\\SphereCube.fbx");
+	m_pCreeper->Load("Minecraft\\Creeper.obj");
 	//m_pCreeper->Load("Lego\\Unikitty.bto");
 	//m_pCreeper->ChangeMeshOptions(MeshOptions(IDENTITY_M4, RENDER_SOLID | RENDER_WIRE), nullptr, -1);
 	m_pCreeperRB = new MyRigidBody(m_pCreeper->GetVertexList());
 
 	//steve
 	m_pSteve = new Model();
-	//m_pSteve->Load("Minecraft\\Steve.obj");
-	//m_pSteveRB = new MyRigidBody(m_pSteve->GetVertexList());
+	m_pSteve->Load("Minecraft\\Steve.obj");
+	m_pSteveRB = new MyRigidBody(m_pSteve->GetVertexList());
 }
 void Application::Update(void)
 {
@@ -38,7 +38,7 @@ void Application::Update(void)
 
 	//reset the color of the rigid bodies to white 
 	m_pCreeperRB->SetColor(C_WHITE);
-	//m_pSteveRB->SetColor(C_WHITE);
+	m_pSteveRB->SetColor(C_WHITE);
 
 	//Set model matrix to the creeper
 	m_pCreeper->SetModelMatrix(glm::translate(m_v3Creeper) * ToMatrix4(m_qArcBall));
@@ -54,8 +54,8 @@ void Application::Update(void)
 	//m_pCreeper->PlaySequence();
 	m_pCreeperRB->AddToRenderList();
 
-	//m_pSteve->AddToRenderList();
-	//m_pSteveRB->AddToRenderList();
+	m_pSteve->AddToRenderList();
+	m_pSteveRB->AddToRenderList();
 }
 void Application::Display(void)
 {
