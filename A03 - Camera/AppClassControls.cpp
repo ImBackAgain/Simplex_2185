@@ -344,44 +344,51 @@ void Application::CameraRotation(float a_fSpeed)
 	MouseY = pt.y;
 
 	//Calculate the difference in view with the angle
-	float fAngleX = 0.0f;
 	float fAngleY = 0.0f;
+	float fAngleX = 0.0f;
 	float fDeltaMouse = 0.0f;
 	if (MouseX < CenterX)
 	{
 		fDeltaMouse = static_cast<float>(CenterX - MouseX);
-		fAngleY += fDeltaMouse * a_fSpeed;
+		fAngleX += fDeltaMouse * a_fSpeed;
+
 	}
 	else if (MouseX > CenterX)
 	{
 		fDeltaMouse = static_cast<float>(MouseX - CenterX);
-		fAngleY -= fDeltaMouse * a_fSpeed;
+		fAngleX -= fDeltaMouse * a_fSpeed;
 	}
 
 	if (MouseY < CenterY)
 	{
 		fDeltaMouse = static_cast<float>(CenterY - MouseY);
-		fAngleX -= fDeltaMouse * a_fSpeed;
+		fAngleY -= fDeltaMouse * a_fSpeed;
 	}
 	else if (MouseY > CenterY)
 	{
 		fDeltaMouse = static_cast<float>(MouseY - CenterY);
-		fAngleX += fDeltaMouse * a_fSpeed;
+		fAngleY += fDeltaMouse * a_fSpeed;
 	}
 	//Change the Yaw and the Pitch of the camera
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
+
+	m_pCamera->RotateSideways(fAngleX);
+	m_pCamera->RotateVertical(fAngleY);
 }
 //Keyboard
 void Application::ProcessKeyboard(void)
 {
 	/*
 	This is used for things that are continuously happening,
-	for discreet on/off use ProcessKeyboardPressed/Released
+	for discrete on/off use ProcessKeyboardPressed/Released
 	*/
 #pragma region Camera Position
 	float fSpeed = 0.1f;
 	float fMultiplier = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ||
 		sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
+
+	float fModifier = sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) ||
+		sf::Keyboard::isKeyPressed(sf::Keyboard::RControl);
 
 	if (fMultiplier)
 		fSpeed *= 5.0f;
@@ -397,9 +404,19 @@ void Application::ProcessKeyboard(void)
 		m_pCamera->MoveSideways(fSpeed);
 
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q))
-		m_pCamera->MoveVertical(-fSpeed);
+	{
+		fModifier ?
+			m_pCamera->MoveGlobalVertical(-fSpeed)
+			:
+			m_pCamera->MoveVertical(-fSpeed);
+	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::E))
-		m_pCamera->MoveVertical(fSpeed);
+	{
+		fModifier ?
+			m_pCamera->MoveGlobalVertical(fSpeed)
+			:
+			m_pCamera->MoveVertical(fSpeed);
+	}
 #pragma endregion
 }
 //Joystick

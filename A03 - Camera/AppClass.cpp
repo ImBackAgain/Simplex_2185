@@ -11,8 +11,8 @@ void Application::InitVariables(void)
 
 	//init the camera
 	m_pCamera = new MyCamera();
-	m_pCamera->SetPositionAndOrientation(
-			vector3(0.0f, 3.0f, 20.0f), //Where my eyes are
+	m_pCamera->SetPositionForwardAndUp(
+			vector3(0.0f, 5.0f, 20.0f), //Where my eyes are
 			-AXIS_Z,					//No, which way you're loooking
 			AXIS_Y);					//what is up
 

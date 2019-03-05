@@ -7,14 +7,22 @@ Date: 2018/09
 
 #include "Definitions.h"
 
+//I use a matrix to hold the orientation of the camera
+#define m_v3Right m_m3Orientation[0]
+#define m_v3Up m_m3Orientation[1]
+#define m_v3Forward m_m3Orientation[2]
+//For ease of rotating
+
 namespace Simplex
 {
 
 class MyCamera
 {
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
-	//vector3 m_v3Forward = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
-	//vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is above the camera
+	
+	//What was that about "up" being confusing?
+	//Sometimes I think I just like confusing myself... sigh...
+
 	matrix3 m_m3Orientation; //And scale, I guesss. But since we can asssume a lot of things about a camera object...
 
 	bool m_bPerspective = true; //perspective view? False is Orthographic
@@ -105,31 +113,32 @@ public:
 
 	/*
 	USAGE: Sets what the camera will be looking at
-	ARGUMENTS: vector3 a_v3Target -> What we want the camera to look at
+	ARGUMENTS: vector3 a_v3Target -> Direction in which the camera should face
 	OUTPUT: ---
 	*/
-	void SetTarget(vector3 a_v3Target);
+	void SetForward(vector3 a_v3Forward);
 
 	/*
 	USAGE: Gets what the camera will be looking at
 	ARGUMENTS: ---
 	OUTPUT: target of the camera
 	*/
-	vector3 GetTarget(void);
+	vector3 GetForward(void);
 
 	/*
 	USAGE: Sets the position of the point above the camera
-	ARGUMENTS: vector3 a_v3Above -> The point that is above the camera position
+	ARGUMENTS: vector3 a_v3Above -> The direction that is upward
 	OUTPUT: ---
 	*/
-	void SetAbove(vector3 a_v3Above);
+	void SetUp(vector3 a_v3Up);
 
 	/*
-	USAGE: Gets the position of the point above camera
+	USAGE: Gets the direction that is upward
 	ARGUMENTS: ---
 	OUTPUT: position above the camera
 	*/
-	vector3 GetAbove(void);
+	vector3 GetUp(void);
+
 
 	/*
 	USAGE: Sets Perspective Camera
@@ -193,10 +202,11 @@ public:
 	USAGE: Set the position target and up of the camera at once
 	ARGUMENTS:
 	-	vector3 a_v3Position -> Where my camera is located
-	-	matrix3 a_m3Orientation -> Shortcut to passs in forward, up and right.
+	-	vector3 a_v3Forward -> Which direction is forward
+	-	vector3 a_v3Up -> Which way is up
 	OUTPUT: ---
 	*/
-	void SetPositionAndOrientation(vector3 a_v3Position, matrix3 a_v3oriantation);
+	void SetPositionForwardAndUp(vector3 a_v3Position, vector3 a_v3Forward, vector3 a_v3Up);
 
 	/*
 	USAGE: Calculate what the camera should be looking at with the values of position target and up
@@ -219,25 +229,43 @@ public:
 	*/
 	void MoveForward(float a_fDistance = 0.1f);
 	/*
-	USAGE: Translates the camera Upward or downward
+	USAGE: Translates the camera Upward or downward, normal to direction of view
 	ARGUMENTS: float a_fDistance = 0.1f -> amount of movement
 	OUTPUT: ---
 	*/
 	void MoveVertical(float a_fDistance = 0.1f);
+	/*
+	USAGE: Translates the camera Upward or downward in global space
+	ARGUMENTS: float a_fDistance = 0.1f -> amount of movement
+	OUTPUT: ---
+	*/
+	void MoveGlobalVertical(float a_fDistance);
 	/*
 	USAGE: Translates the camera right or left
 	ARGUMENTS: float a_fDistance = 0.1f -> amount of movement
 	OUTPUT: ---
 	*/
 	void MoveSideways(float a_fDistance = 0.1f);
+	/*
+	USAGE: Turns the camera about the global vertical axis.
+	ARGUMENTS: angle to turn to the right
+	OUTPUT: ---
+	*/
+	void RotateSideways(float a_fAngle = 0.1f);
+	/*
+	USAGE: Turns the camera about the local left-right axis
+	ARGUMENTS: angle to turn downward
+	OUTPUT: ---
+	*/
+	void RotateVertical(float a_fAngle = 0.1f);
 };
 
 } //namespace Simplex
 
 #endif //__MYCAMERACLASS_H_
 
-  /*
-  USAGE:
-  ARGUMENTS: ---
-  OUTPUT: ---
-  */
+	/*
+	USAGE:
+	ARGUMENTS: ---
+	OUTPUT: ---
+	*/
