@@ -59,6 +59,7 @@ USAGE: will safely delete the input pointer and initialize it to nullptr, DOES N
 #define SafeDelete(p){ if(p) { delete p; p = nullptr; } }
 
 #define PI 3.14159265358979323846
+#define PIf (float)PI
 #define IDENTITY_M4 matrix4(1.0f)
 #define IDENTITY_QUAT quaternion();
 #define ZERO_V3 vector3(0.0f, 0.0f, 0.0f)

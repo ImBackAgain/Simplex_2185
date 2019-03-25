@@ -86,39 +86,41 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 	m_m4ToWorld = a_m4ModelMatrix;
 
 	//Calculate the 8 corners of the cube
-	vector3 v3Corner[8];
+	//But also don't get rid of them
+	//And make them vec4's because I'm gonnna use them so much
+	
 	//Back square
-	v3Corner[0] = m_v3MinL;
-	v3Corner[1] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
-	v3Corner[2] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
-	v3Corner[3] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
+	m_v4CornersL[0] = vector4(m_v3MinL, 1);
+	m_v4CornersL[1] = vector4(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z, 1);
+	m_v4CornersL[2] = vector4(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z, 1);
+	m_v4CornersL[3] = vector4(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z, 1);
 
 	//Front square
-	v3Corner[4] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
-	v3Corner[5] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
-	v3Corner[6] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
-	v3Corner[7] = m_v3MaxL;
+	m_v4CornersL[4] = vector4(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z, 1);
+	m_v4CornersL[5] = vector4(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z, 1);
+	m_v4CornersL[6] = vector4(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z, 1);
+	m_v4CornersL[7] = vector4(m_v3MaxL, 1);
 
 	//Place them in world space
 	for (uint uIndex = 0; uIndex < 8; ++uIndex)
 	{
-		v3Corner[uIndex] = vector3(m_m4ToWorld * vector4(v3Corner[uIndex], 1.0f));
+		m_v4CornersL[uIndex] = m_m4ToWorld * m_v4CornersL[uIndex];
 	}
 
 	//Identify the max and min as the first corner
-	m_v3MaxG = m_v3MinG = v3Corner[0];
+	m_v3MaxG = m_v3MinG = m_v4CornersL[0];
 
 	//get the new max and min for the global box
 	for (uint i = 1; i < 8; ++i)
 	{
-		if (m_v3MaxG.x < v3Corner[i].x) m_v3MaxG.x = v3Corner[i].x;
-		else if (m_v3MinG.x > v3Corner[i].x) m_v3MinG.x = v3Corner[i].x;
+		if (m_v3MaxG.x < m_v4CornersL[i].x) m_v3MaxG.x = m_v4CornersL[i].x;
+		else if (m_v3MinG.x > m_v4CornersL[i].x) m_v3MinG.x = m_v4CornersL[i].x;
 
-		if (m_v3MaxG.y < v3Corner[i].y) m_v3MaxG.y = v3Corner[i].y;
-		else if (m_v3MinG.y > v3Corner[i].y) m_v3MinG.y = v3Corner[i].y;
+		if (m_v3MaxG.y < m_v4CornersL[i].y) m_v3MaxG.y = m_v4CornersL[i].y;
+		else if (m_v3MinG.y > m_v4CornersL[i].y) m_v3MinG.y = m_v4CornersL[i].y;
 
-		if (m_v3MaxG.z < v3Corner[i].z) m_v3MaxG.z = v3Corner[i].z;
-		else if (m_v3MinG.z > v3Corner[i].z) m_v3MinG.z = v3Corner[i].z;
+		if (m_v3MaxG.z < m_v4CornersL[i].z) m_v3MaxG.z = m_v4CornersL[i].z;
+		else if (m_v3MinG.z > m_v4CornersL[i].z) m_v3MinG.z = m_v4CornersL[i].z;
 	}
 
 	//we calculate the distance between min and max vectors
@@ -232,8 +234,115 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	//if they are colliding check the SAT
 	if (bColliding)
 	{
-		if(SAT(a_pOther) != eSATResults::SAT_NONE)
+		eSATResults separation = (eSATResults)SAT(a_pOther);
+		if (separation != eSATResults::SAT_NONE)
+		{
 			bColliding = false;// reset to false
+			
+			vector3 col = C_RED, normal;
+			matrix4 planer = matrix3(m_m4ToWorld);
+
+			//Remove translation
+			switch (separation)
+			{
+			case eSATResults::SAT_AX:
+				planer = planer * glm::rotate(IDENTITY_M4, PIf / 2, AXIS_Y);
+				break;
+			case eSATResults::SAT_AY:
+				planer = planer * glm::rotate(IDENTITY_M4, PIf / 2, AXIS_X);
+				col = C_GREEN;
+				break;
+			case eSATResults::SAT_AZ:
+				col = C_BLUE;
+				break;
+			case eSATResults::SAT_BX:
+				planer = matrix3(a_pOther->m_m4ToWorld * glm::rotate(IDENTITY_M4, PIf / 2, AXIS_Y));
+				break;
+			case eSATResults::SAT_BY:
+				planer = matrix3(a_pOther->m_m4ToWorld * glm::rotate(IDENTITY_M4, PIf / 2, AXIS_X));
+				col = C_GREEN;
+				break;
+			case eSATResults::SAT_BZ:
+				planer = matrix3(a_pOther->m_m4ToWorld);
+				col = C_BLUE;
+				break;
+
+
+
+			case eSATResults::SAT_AXxBX:
+				normal = glm::cross(vector3(m_m4ToWorld[0]), 
+					vector3(a_pOther->m_m4ToWorld[0]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AXxBY:
+				normal = glm::cross(vector3(m_m4ToWorld[0]), 
+					vector3(a_pOther->m_m4ToWorld[1]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AXxBZ:
+				normal = glm::cross(vector3(m_m4ToWorld[0]), 
+					vector3(a_pOther->m_m4ToWorld[2]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AYxBX:
+				normal = glm::cross(vector3(m_m4ToWorld[1]), 
+					vector3(a_pOther->m_m4ToWorld[0]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AYxBY:
+				normal = glm::cross(vector3(m_m4ToWorld[1]), 
+					vector3(a_pOther->m_m4ToWorld[1]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AYxBZ:
+				normal = glm::cross(vector3(m_m4ToWorld[1]), 
+					vector3(a_pOther->m_m4ToWorld[2]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AZxBX:
+				normal = glm::cross(vector3(m_m4ToWorld[2]), 
+					vector3(a_pOther->m_m4ToWorld[0]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AZxBY:
+				normal = glm::cross(vector3(m_m4ToWorld[2]), 
+					vector3(a_pOther->m_m4ToWorld[1]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+			case eSATResults::SAT_AZxBZ:
+				normal = glm::cross(vector3(m_m4ToWorld[2]), 
+					vector3(a_pOther->m_m4ToWorld[2]));
+				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				col = C_BLACK;
+				break;
+
+
+
+			default:
+				break;
+			}
+
+			matrix4 preRotation = glm::scale(vector3(5, 5, 5));
+			matrix4 postRotation = glm::translate(
+					vector3(
+						m_m4ToWorld * vector4(m_v3Center, 1)
+						+ a_pOther->m_m4ToWorld * vector4(a_pOther->m_v3Center, 1)
+				)/2
+			);
+
+			m_pMeshMngr->AddPlaneToRenderList(postRotation * planer * preRotation, col);
+			m_pMeshMngr->AddPlaneToRenderList(postRotation * planer * preRotation * glm::rotate(PIf, AXIS_Y), col);	
+			
+		}
+		
 	}
 
 	if (bColliding) //they are colliding
@@ -287,6 +396,140 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
-	//there is no axis test that separates this two objects
+	/*
+	Hey Ash, do you think you could maybe somehow give Alberto a hint -
+	without tippping him offf to its origin - that he should maybe check
+	out this coool Wikipedia article?
+	https://en.wikipediorg/wiki/Full_stop
+
+
+
+	PLEASE. THIS AFFFRONT TO SANITY CANNNOT BE ALLLOWED TO PASSS. HE
+	MUST BE STOPPPED. HELP ME.
+
+	BEFORE IT'S TOOO LATE.
+
+
+
+	honestly
+
+	if I could magicallly infuse Alberto with an apppreciation for 
+	punctuation
+	
+	at the cost of _failing DSA 2 this semester_
+	
+	I'd consider it.
+	Not saying I'd definitely take it, but...
+	*/
+
+	//So I have to write commments, eh?
+	float ra, rb;
+	//"Radiii" of 1D shadows on the relevant axis
+	matrix3 R, AbsR;
+	// Compute rotation matrix expressing b in a’s coordinate frame
+
+	for (int i = 0; i < 3; i++)
+		for (int j = 0; j < 3; j++)
+			R[i][j] = glm::dot(m_m4ToWorld[i], a_pOther->m_m4ToWorld[j]);
+			//Simple enough
+			//Actuallly this isn't, but I'lll take the author's word for it.
+
+
+	// Compute translation vector t
+	vector3 t = a_pOther->m_m4ToWorld * vector4(a_pOther->m_v3Center, 1) - m_m4ToWorld * vector4(m_v3Center, 1);
+	// I won't touch a gettter function in this classs
+	// Some would, but not me
+
+	// Bring translation into a's coordinate frame
+	t = vector3(glm::dot(t, vector3(m_m4ToWorld[0])), glm::dot(t, vector3(m_m4ToWorld[1])), glm::dot(t, vector3(m_m4ToWorld[2])));
+	//Wait... this is backwards...
+	//Why does this work?
+
+	// I genuinely have no idea what this matrix is for, or how it achieves anything
+	float EPSILON = 0.01f;
+	for(int i=0; i < 3; i++)
+		for (int j = 0;	j < 3; j++)
+			AbsR[i][j] = glm::abs(R[i][j]) + EPSILON;
+
+	// Test axesL=a.x,L=a.y,L=a.z
+	for(int i=0; i < 3; i++)
+	{
+		ra = m_v3HalfWidth[i];
+		//Ugh, reallly? Hard code ALLL of this???
+
+		rb = a_pOther->m_v3HalfWidth[0] * AbsR[i][0] + a_pOther->m_v3HalfWidth[1] * AbsR[i][1] + a_pOther->m_v3HalfWidth[2] * AbsR[i][2];
+		//And not use a dot product here?
+
+		if (glm::abs(t[i]) > ra + rb)
+			return (eSATResults)(i+1);
+	}
+
+	// Test axesL=b.x,L=b.y,L=b.z
+	for (int i = 0; i < 3; i++)
+	{
+		ra = m_v3HalfWidth[0] * AbsR[0][i] + m_v3HalfWidth[1] * AbsR[1][i] + m_v3HalfWidth[2] *	AbsR[2][i];
+		rb = a_pOther->m_v3HalfWidth[i];
+
+		if (glm::abs(t[0] * R[0][i] + t[1] * R[1][i] + t[2] * R[2][i]) > ra + rb)
+			return (eSATResults)(4+i);
+	}
+
+	// Test axisL=a.xxb.x
+	ra = m_v3HalfWidth[1] * AbsR[2][0] + m_v3HalfWidth[2] * AbsR[1][0];
+	//Some kind of math happpening here...
+	rb = a_pOther->m_v3HalfWidth[1] * AbsR[0][2] + a_pOther->m_v3HalfWidth[2] * AbsR[0][1]; //More math
+	if (glm::abs(t[2] * R[1][0] - t[1] * R[2][0]) > ra + rb)	// I mean I get this line
+		return eSATResults::SAT_AXxBX;							// Or at least I would, if I could make sense of the previous line
+
+	// Test axisL=a.xxb.y
+	ra = m_v3HalfWidth[1] * AbsR[2][1] + m_v3HalfWidth[2] * AbsR[1][1];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[0][2] + a_pOther->m_v3HalfWidth[2] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][1] - t[1] * R[2][1]) > ra + rb)
+		return eSATResults::SAT_AXxBY;
+
+	// Test axisL=a.xxb.z
+	ra = m_v3HalfWidth[1] * AbsR[2][2] + m_v3HalfWidth[2] * AbsR[1][2];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[0][1] + a_pOther->m_v3HalfWidth[1] * AbsR[0][0];
+	if (glm::abs(t[2] * R[1][2] - t[1] * R[2][2]) > ra + rb)
+		return eSATResults::SAT_AXxBZ;
+
+	// Test axisL=a.yxb.x
+	ra = m_v3HalfWidth[0] * AbsR[2][0] + m_v3HalfWidth[2] * AbsR[0][0];
+	rb = a_pOther->m_v3HalfWidth[1] * AbsR[1][2] + a_pOther->m_v3HalfWidth[2] * AbsR[1][1];
+	if (glm::abs(t[0] * R[2][0] - t[2] * R[0][0]) > ra + rb)
+		return eSATResults::SAT_AYxBX;
+
+	// Test axisL=a.yxb.y
+	ra = m_v3HalfWidth[0] * AbsR[2][1] + m_v3HalfWidth[2] * AbsR[0][1];						//Why do they calll the test axis L?
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[1][2] + a_pOther->m_v3HalfWidth[2] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][1] - t[2] * R[0][1]) > ra + rb)
+		return eSATResults::SAT_AYxBY;
+
+	// Test axisL=a.yxb.z
+	ra = m_v3HalfWidth[0] * AbsR[2][2] + m_v3HalfWidth[2] * AbsR[0][2];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[1][1] + a_pOther->m_v3HalfWidth[1] * AbsR[1][0];
+	if (glm::abs(t[0] * R[2][2] - t[2] * R[0][2]) > ra + rb)
+		return eSATResults::SAT_AYxBZ;
+
+	// Test axisL=a.zxb.x
+	ra = m_v3HalfWidth[0] * AbsR[1][0] + m_v3HalfWidth[1] * AbsR[0][0];
+	rb = a_pOther->m_v3HalfWidth[1] * AbsR[2][2] + a_pOther->m_v3HalfWidth[2] * AbsR[2][1];
+	if (glm::abs(t[1] * R[0][0] - t[0] * R[1][0]) > ra + rb)
+		return eSATResults::SAT_AZxBX;
+
+	// Test axisL=a.zxb.y
+	ra = m_v3HalfWidth[0] * AbsR[1][1] + m_v3HalfWidth[1] * AbsR[0][1];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[2][2] + a_pOther->m_v3HalfWidth[2] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][1] - t[0] * R[1][1]) > ra + rb)
+		return eSATResults::SAT_AZxBY;
+
+	// Test axisL=a.zxb.z
+	ra = m_v3HalfWidth[0] * AbsR[1][2] + m_v3HalfWidth[1] * AbsR[0][2];
+	rb = a_pOther->m_v3HalfWidth[0] * AbsR[2][1] + a_pOther->m_v3HalfWidth[1] * AbsR[2][0];
+	if (glm::abs(t[1] * R[0][2] - t[0] * R[1][2]) > ra + rb)
+		return eSATResults::SAT_AZxBZ;
+
+	// Since no separating axis is found, the OBBs must be intersecting
 	return eSATResults::SAT_NONE;
+	
 }

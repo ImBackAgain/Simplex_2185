@@ -23,6 +23,7 @@ class MyRigidBody
 
 	vector3 m_v3ColorColliding = C_RED; //Color when colliding
 	vector3 m_v3ColorNotColliding = C_WHITE; //Color when not colliding
+	vector4 m_v4CornersL[8]; //AABB corner positions, in local space
 
 	vector3 m_v3Center = ZERO_V3; //center point in local space
 	vector3 m_v3MinL = ZERO_V3; //minimum coordinate in local space (for OBB)
