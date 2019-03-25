@@ -17,6 +17,7 @@ void Application::InitVariables(void)
 	m_pCreeper = new Model();
 	m_pCreeper->Load("Minecraft\\Creeper.obj");
 	m_pCreeperRB = new MyRigidBody(m_pCreeper->GetVertexList());
+	
 	//steve
 	m_pSteve = new Model();
 	m_pSteve->Load("Minecraft\\Steve.obj");

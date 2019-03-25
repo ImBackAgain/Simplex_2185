@@ -234,13 +234,25 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 	//if they are colliding check the SAT
 	if (bColliding)
 	{
+		vector3 inBetweeen;
 		eSATResults separation = (eSATResults)SAT(a_pOther);
+
+
 		if (separation != eSATResults::SAT_NONE)
 		{
 			bColliding = false;// reset to false
 			
 			vector3 col = C_RED, normal;
 			matrix4 planer = matrix3(m_m4ToWorld);
+
+
+			matrix4 planeScalar = glm::scale(vector3(5, 5, 5));
+			matrix4 planePosition = glm::translate(
+				vector3(
+					m_m4ToWorld * vector4(m_v3Center, 1)
+					+ a_pOther->m_m4ToWorld * vector4(a_pOther->m_v3Center, 1)
+				) / 2
+			);
 
 			//Remove translation
 			switch (separation)
@@ -272,56 +284,74 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 			case eSATResults::SAT_AXxBX:
 				normal = glm::cross(vector3(m_m4ToWorld[0]), 
 					vector3(a_pOther->m_m4ToWorld[0]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AXxBY:
 				normal = glm::cross(vector3(m_m4ToWorld[0]), 
 					vector3(a_pOther->m_m4ToWorld[1]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AXxBZ:
 				normal = glm::cross(vector3(m_m4ToWorld[0]), 
 					vector3(a_pOther->m_m4ToWorld[2]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AYxBX:
 				normal = glm::cross(vector3(m_m4ToWorld[1]), 
 					vector3(a_pOther->m_m4ToWorld[0]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AYxBY:
 				normal = glm::cross(vector3(m_m4ToWorld[1]), 
 					vector3(a_pOther->m_m4ToWorld[1]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AYxBZ:
 				normal = glm::cross(vector3(m_m4ToWorld[1]), 
 					vector3(a_pOther->m_m4ToWorld[2]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AZxBX:
 				normal = glm::cross(vector3(m_m4ToWorld[2]), 
 					vector3(a_pOther->m_m4ToWorld[0]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AZxBY:
 				normal = glm::cross(vector3(m_m4ToWorld[2]), 
 					vector3(a_pOther->m_m4ToWorld[1]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 			case eSATResults::SAT_AZxBZ:
 				normal = glm::cross(vector3(m_m4ToWorld[2]), 
 					vector3(a_pOther->m_m4ToWorld[2]));
-				planer = glm::lookAt(ZERO_V3, normal, AXIS_Y);
+				planer = glm::transpose(glm::lookAt(ZERO_V3, normal, AXIS_Y));
 				col = C_BLACK;
+				 
+					
 				break;
 
 
@@ -330,16 +360,8 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 				break;
 			}
 
-			matrix4 preRotation = glm::scale(vector3(5, 5, 5));
-			matrix4 postRotation = glm::translate(
-					vector3(
-						m_m4ToWorld * vector4(m_v3Center, 1)
-						+ a_pOther->m_m4ToWorld * vector4(a_pOther->m_v3Center, 1)
-				)/2
-			);
-
-			m_pMeshMngr->AddPlaneToRenderList(postRotation * planer * preRotation, col);
-			m_pMeshMngr->AddPlaneToRenderList(postRotation * planer * preRotation * glm::rotate(PIf, AXIS_Y), col);	
+			m_pMeshMngr->AddPlaneToRenderList(planePosition * planer * planeScalar, col);
+			m_pMeshMngr->AddPlaneToRenderList(planePosition * planer * planeScalar * glm::rotate(PIf, AXIS_Y), col);	
 			
 		}
 		
@@ -533,59 +555,62 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 
 	// Since no separating axis is found, the OBBs must be intersecting
 	return eSATResults::SAT_NONE;
+
+
 	/*/
+	//I started making this myself while waiting for a friend to get me the boook.
 	vector3 axes[15];
 
 	for (uint i = 0; i < 3; i++)
 	{
-		axes[i] = vector3(m_m4ToWorld[i]); // X/Y/Z of the first object
-		axes[i + 3] = vector3(a_pOther->m_m4ToWorld[i]); // X/Y/Z of the second
+		axes[i] = vector3(m_m4toworld[i]); // x/y/z of the first object
+		axes[i + 3] = vector3(a_pother->m_m4toworld[i]); // x/y/z of the second
 	}
 
 	for (uint i = 0; i < 3; i++)
 	{
 		for (uint j = 0; j < 3; j++)
 		{
-			vector3 axisA = axes[i], axisB = axes[3 + j];
-			//Makes sense, right?
-			if (axisA == axisB || axisA == -axisB)
+			vector3 axisa = axes[i], axisb = axes[3 + j];
+			//makes sense, right?
+			if (axisa == axisb || axisa == -axisb)
 			{
-				//Let's save some processsing power
+				//let's save some processsing power
 				
-				axes[3 * i + j + 6] = vector3(4, 0, 0); //The 4 is a flag value; none of our axes can ever be that big
+				axes[3 * i + j + 6] = vector3(4, 0, 0); //the 4 is a flag value; none of our axes can ever be that big
 
-				//Position with offfset of 6 because the first 6 are taken.
-				//Also matches up with the order of the enum values!
+				//position with offfset of 6 because the first 6 are taken.
+				//also matches up with the order of the enum values!
 			}
 			else
 			{
-				axes[3 * i + j + 6] = glm::cross(axisA, axisB);
+				axes[3 * i + j + 6] = glm::cross(axisa, axisb);
 			}
 		}
 	}
-	//Alright, we have alll our axes!
-	//Next, we neeed the bounding box corners.
+	//alright, we have alll our axes!
+	//next, we neeed the bounding box corners.
 
-	vector3 cornersA[8], cornersB[8];
-	//Hold on, boys. This is gonnna get ugly.
+	vector3 cornersa[8], cornersb[8];
+	//hold on, boys. this is gonnna get ugly.
 	for (uint i = 0; i < 8; i++)
 	{
-		cornersA[i] = m_m4ToWorld * m_v4CornersL[i];
-		cornersB[i] = m_m4ToWorld * a_pOther->m_v4CornersL[i];
+		cornersa[i] = m_m4toworld * m_v4cornersl[i];
+		cornersb[i] = m_m4toworld * a_pother->m_v4cornersl[i];
 	}
 
-	//And now the fun starts
+	//and now the fun starts
 	for (uint i = 0; i < 15; i++)
 	{
 		if (axes[i][0] == 4)
 			continue;
 
-		float aMin, aMax, bMin, bMax;
+		float amin, amax, bmin, bmax;
 
 		
 	}
 
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	return esatresults::sat_none;
 	//*/
 }
