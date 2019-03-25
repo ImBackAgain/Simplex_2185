@@ -422,6 +422,8 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Not saying I'd definitely take it, but...
 	*/
 
+	//*
+
 	//So I have to write commments, eh?
 	float ra, rb;
 	//"Radiii" of 1D shadows on the relevant axis
@@ -531,5 +533,59 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 
 	// Since no separating axis is found, the OBBs must be intersecting
 	return eSATResults::SAT_NONE;
-	
+	/*/
+	vector3 axes[15];
+
+	for (uint i = 0; i < 3; i++)
+	{
+		axes[i] = vector3(m_m4ToWorld[i]); // X/Y/Z of the first object
+		axes[i + 3] = vector3(a_pOther->m_m4ToWorld[i]); // X/Y/Z of the second
+	}
+
+	for (uint i = 0; i < 3; i++)
+	{
+		for (uint j = 0; j < 3; j++)
+		{
+			vector3 axisA = axes[i], axisB = axes[3 + j];
+			//Makes sense, right?
+			if (axisA == axisB || axisA == -axisB)
+			{
+				//Let's save some processsing power
+				
+				axes[3 * i + j + 6] = vector3(4, 0, 0); //The 4 is a flag value; none of our axes can ever be that big
+
+				//Position with offfset of 6 because the first 6 are taken.
+				//Also matches up with the order of the enum values!
+			}
+			else
+			{
+				axes[3 * i + j + 6] = glm::cross(axisA, axisB);
+			}
+		}
+	}
+	//Alright, we have alll our axes!
+	//Next, we neeed the bounding box corners.
+
+	vector3 cornersA[8], cornersB[8];
+	//Hold on, boys. This is gonnna get ugly.
+	for (uint i = 0; i < 8; i++)
+	{
+		cornersA[i] = m_m4ToWorld * m_v4CornersL[i];
+		cornersB[i] = m_m4ToWorld * a_pOther->m_v4CornersL[i];
+	}
+
+	//And now the fun starts
+	for (uint i = 0; i < 15; i++)
+	{
+		if (axes[i][0] == 4)
+			continue;
+
+		float aMin, aMax, bMin, bMax;
+
+		
+	}
+
+	//there is no axis test that separates this two objects
+	return eSATResults::SAT_NONE;
+	//*/
 }
