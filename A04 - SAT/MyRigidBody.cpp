@@ -378,6 +378,8 @@ bool MyRigidBody::IsColliding(MyRigidBody* const a_pOther)
 		a_pOther->RemoveCollisionWith(this);
 	}
 
+	
+
 	return bColliding;
 }
 void MyRigidBody::AddToRenderList(void)
@@ -444,7 +446,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Not saying I'd definitely take it, but...
 	*/
 
-	//*
+	/*
 
 	//So I have to write commments, eh?
 	float ra, rb;
@@ -563,40 +565,46 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 
 	for (uint i = 0; i < 3; i++)
 	{
-		axes[i] = vector3(m_m4toworld[i]); // x/y/z of the first object
-		axes[i + 3] = vector3(a_pother->m_m4toworld[i]); // x/y/z of the second
+		axes[i] = vector3(m_m4ToWorld[i]); // x/y/z of the first object
+		axes[i + 3] = vector3(a_pOther->m_m4ToWorld[i]); // x/y/z of the second
+	}
+	for (uint i = 0; i < 3; i++)
+	{
+		if (axes[i][0] == 4)
+			continue;
+		for (uint j = 0; j < 3; j++)
+		{
+			if (axes[i] == axes[3 + j] || axes[i] == -axes[3+j])
+			{
+				axes[j] = 4 * AXIS_X; //the 4 is a flag value; none of our axes can ever be that big
+			}
+		}
 	}
 
 	for (uint i = 0; i < 3; i++)
 	{
 		for (uint j = 0; j < 3; j++)
 		{
-			vector3 axisa = axes[i], axisb = axes[3 + j];
-			//makes sense, right?
-			if (axisa == axisb || axisa == -axisb)
+			vector3 axisA = axes[i], axisB = axes[3 + j];
+			if (axisB[0] == 4)
 			{
-				//let's save some processsing power
-				
-				axes[3 * i + j + 6] = vector3(4, 0, 0); //the 4 is a flag value; none of our axes can ever be that big
-
-				//position with offfset of 6 because the first 6 are taken.
-				//also matches up with the order of the enum values!
+				axes[3 * i + j + 6] = 4 * AXIS_X;
 			}
 			else
 			{
-				axes[3 * i + j + 6] = glm::cross(axisa, axisb);
+				axes[3 * i + j + 6] = glm::cross(axisA, axisB);
 			}
 		}
 	}
 	//alright, we have alll our axes!
 	//next, we neeed the bounding box corners.
 
-	vector3 cornersa[8], cornersb[8];
+	vector3 cornersA[8], cornersB[8];
 	//hold on, boys. this is gonnna get ugly.
 	for (uint i = 0; i < 8; i++)
 	{
-		cornersa[i] = m_m4toworld * m_v4cornersl[i];
-		cornersb[i] = m_m4toworld * a_pother->m_v4cornersl[i];
+		cornersA[i] = m_m4ToWorld * m_v4CornersL[i];
+		cornersB[i] = m_m4ToWorld * a_pOther->m_v4CornersL[i];
 	}
 
 	//and now the fun starts
@@ -605,12 +613,26 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 		if (axes[i][0] == 4)
 			continue;
 
-		float amin, amax, bmin, bmax;
+		float aMin, aMax, bMin, bMax;
+		aMin = aMax = glm::dot(vector3(m_m4ToWorld * m_v4CornersL[0]), axes[i]);
+		bMin = bMax = glm::dot(vector3(a_pOther->m_m4ToWorld * a_pOther->m_v4CornersL[0]), axes[i]);
 
-		
+		for (uint j = 0; j < 8; j++)
+		{
+			float aShadow = glm::dot(vector3(m_m4ToWorld * m_v4CornersL[j]), axes[i]);
+			float bShadow = glm::dot(vector3(a_pOther->m_m4ToWorld * a_pOther->m_v4CornersL[0]), axes[i]);
+
+			if (aShadow < aMin) aMin = aShadow;
+			else if (aShadow > aMax) aMax = aShadow;
+
+			if (bShadow < bMin) bMin = bShadow;
+			else if (bShadow > bMax) bMax = bShadow;
+		}
+
+		if (aMin > bMax || aMax < bMin) return i + 1;
 	}
 
 	//there is no axis test that separates this two objects
-	return esatresults::sat_none;
+	return eSATResults::SAT_NONE;
 	//*/
 }
