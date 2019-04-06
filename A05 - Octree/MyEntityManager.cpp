@@ -6,6 +6,8 @@ void Simplex::MyEntityManager::Init(void)
 {
 	m_uEntityCount = 0;
 	m_mEntityArray = nullptr;
+	rbArrray = nullptr;
+	Octonode::renderman = MeshManager::GetInstance();
 }
 void Simplex::MyEntityManager::Release(void)
 {
@@ -13,9 +15,12 @@ void Simplex::MyEntityManager::Release(void)
 	{
 		MyEntity* pEntity = m_mEntityArray[uEntity];
 		SafeDelete(pEntity);
+		PRigidBody pRb = rbArrray[uEntity];
+		SafeDelete(pRb);
 	}
 	m_uEntityCount = 0;
 	m_mEntityArray = nullptr;
+	rbArrray = nullptr;
 }
 Simplex::MyEntityManager* Simplex::MyEntityManager::GetInstance()
 {
@@ -46,9 +51,41 @@ int Simplex::MyEntityManager::GetEntityIndex(String a_sUniqueID)
 }
 //Accessors
 Simplex::uint Simplex::MyEntityManager::GetEntityCount(void) {	return m_uEntityCount; }
-std::vector<MyRigidBody> Simplex::MyEntityManager::GetEntityList()
+void Simplex::MyEntityManager::CalcOctreee(uint maxLv, uint entNum)
 {
-	return 4;
+	vector3 cumulMin, cumulMax;
+	cumulMin = rbArrray[0]->GetMinGlobal();
+	cumulMax = rbArrray[0]->GetMaxGlobal();
+	for (uint i = 0; i < m_uEntityCount; i++)
+	{
+		vector3 tempMax, tempMin;
+		tempMin = rbArrray[i]->GetMinGlobal();
+		tempMax = rbArrray[i]->GetMaxGlobal();
+
+		if (cumulMax.x < tempMax.x) cumulMax.x = tempMax.x;
+		if (cumulMax.y < tempMax.y) cumulMax.y = tempMax.y;
+		if (cumulMax.z < tempMax.z) cumulMax.z = tempMax.z;
+
+		if (cumulMin.x > tempMin.x) cumulMin.x = tempMin.x;
+		if (cumulMin.y > tempMin.y) cumulMin.y = tempMin.y;
+		if (cumulMin.z > tempMin.z) cumulMin.z = tempMin.z;
+	}
+
+	//vector3 t = rbArrray[0]->GetMinGlobal();
+
+	//printf("\nEntMan:78\nFirst rb's min is [%f, %f, %f]\n", t.x, t.y, t.z);
+
+	vector3 c = (cumulMax + cumulMin) / 2;
+	vector3 e = (cumulMax - cumulMin) / 2;
+	octreee = Octonode(c, e);
+	for (uint i = 0; i < m_uEntityCount; i++)
+	{
+		PRigidBody rb = rbArrray[i];
+		octreee.AddEntity(rb, maxLv, entNum);
+	}
+}
+void Simplex::MyEntityManager::SetOctreeeVisible(bool visible)
+{
 }
 Simplex::Model* Simplex::MyEntityManager::GetModel(uint a_uIndex)
 {
@@ -178,12 +215,10 @@ void Simplex::MyEntityManager::Update(void)
 	}
 
 	//check collisions
-	for (uint i = 0; i < m_uEntityCount - 1; i++)
+	octreee.CheckColllisions();
+	if (visiBlocto && octoLevel > 0)
 	{
-		for (uint j = i + 1; j < m_uEntityCount; j++)
-		{
-			m_mEntityArray[i]->IsColliding(m_mEntityArray[j]);
-		}
+		octreee.Draw();
 	}
 }
 void Simplex::MyEntityManager::AddEntity(String a_sFileName, String a_sUniqueID)
@@ -195,23 +230,31 @@ void Simplex::MyEntityManager::AddEntity(String a_sFileName, String a_sUniqueID)
 	{
 		//create a new temp array with one extra entry
 		PEntity* tempArray = new PEntity[m_uEntityCount + 1];
+		PRigidBody* otherTemp = new PRigidBody[m_uEntityCount + 1];
 		//start from 0 to the current count
 		uint uCount = 0;
 		for (uint i = 0; i < m_uEntityCount; ++i)
 		{
 			tempArray[uCount] = m_mEntityArray[i];
+			otherTemp[uCount] = rbArrray[i];
 			++uCount;
 		}
 		tempArray[uCount] = pTemp;
+		MyRigidBody* rbTemp = pTemp->GetRigidBody();
+		otherTemp[m_uEntityCount] = rbTemp;
 		//if there was an older array delete
 		if (m_mEntityArray)
 		{
 			delete[] m_mEntityArray;
 		}
+		if (rbArrray) delete[] rbArrray;
+		
 		//make the member pointer the temp pointer
 		m_mEntityArray = tempArray;
+		rbArrray = otherTemp;
 		//add one entity to the count
 		++m_uEntityCount;
+
 	}
 }
 void Simplex::MyEntityManager::RemoveEntity(uint a_uIndex)
@@ -228,24 +271,30 @@ void Simplex::MyEntityManager::RemoveEntity(uint a_uIndex)
 	if (a_uIndex != m_uEntityCount - 1)
 	{
 		std::swap(m_mEntityArray[a_uIndex], m_mEntityArray[m_uEntityCount - 1]);
+		std::swap(rbArrray[a_uIndex], rbArrray[m_uEntityCount - 1]);
 	}
 	
 	//and then pop the last one
 	//create a new temp array with one less entry
 	PEntity* tempArray = new PEntity[m_uEntityCount - 1];
+	PRigidBody* tempLuigi = new PRigidBody[m_uEntityCount - 1];
 	//start from 0 to the current count
 	for (uint i = 0; i < m_uEntityCount - 1; ++i)
 	{
 		tempArray[i] = m_mEntityArray[i];
+		tempLuigi[i] = rbArrray[i];
 	}
 	//if there was an older array delete
 	if (m_mEntityArray)
 	{
 		delete[] m_mEntityArray;
 	}
+	if (rbArrray) delete[] rbArrray;
 	//make the member pointer the temp pointer
 	m_mEntityArray = tempArray;
+	rbArrray = tempLuigi;
 	//add one entity to the count
+	//??
 	--m_uEntityCount;
 }
 void Simplex::MyEntityManager::RemoveEntity(String a_sUniqueID)

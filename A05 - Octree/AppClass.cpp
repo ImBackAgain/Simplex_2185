@@ -30,6 +30,7 @@ void Application::InitVariables(void)
 		}
 	}
 	m_uOctantLevels = 1;
+	m_pEntityMngr->CalcOctreee(m_uOctantLevels);
 	m_pEntityMngr->Update();
 
 

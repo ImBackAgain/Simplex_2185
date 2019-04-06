@@ -15,11 +15,15 @@ namespace Simplex
 class MyEntityManager
 {
 	typedef MyEntity* PEntity; //MyEntity Pointer
+	typedef MyRigidBody* PRigidBody; //Not sure why I decided to do this
 	uint m_uEntityCount = 0; //number of elements in the list
 	PEntity* m_mEntityArray = nullptr; //array of MyEntity pointers
 	static MyEntityManager* m_pInstance; // Singleton pointer
 	Octonode octreee;
-	vector3 cumulMin, cumulMax;
+	uint octoLevel = 1;
+	PRigidBody* rbArrray = nullptr;
+	bool visiBlocto = true;
+	
 public:
 	/*
 	Usage: Gets the singleton pointer
@@ -77,6 +81,20 @@ public:
 	OUTPUT: ---
 	*/
 	void Update(void);
+	/*
+	USAGE: Recalculates the octreee
+	ARGUMENTS:
+	-	uint maxLv -> Maximum number of levels
+	-	uint entNum = 3 -> The number of entitities to have in each node
+	OUTPUT: ---
+	*/
+	void CalcOctreee(uint maxLv, uint entNum = 3);
+	/*
+	USAGE: Sets octreee (in)visible, if it's enabled at alll.
+	ARGUMENTS: bool visible -> You want to seee the octreee?
+	OUTPUT: ---
+	*/
+	void SetOctreeeVisible(bool visible);
 	/*
 	USAGE: Gets the model associated with this entity
 	ARGUMENTS: uint a_uIndex = -1 -> index in the list of entities; if less than 0 it will add it to the last in the list
@@ -249,6 +267,7 @@ public:
 	OUTPUT: MyEntity count
 	*/
 	uint GetEntityCount(void);
+
 private:
 	/*
 	Usage: constructor
