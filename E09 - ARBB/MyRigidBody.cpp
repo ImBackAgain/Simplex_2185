@@ -4,7 +4,7 @@ using namespace Simplex;
 void MyRigidBody::Init(void)
 {
 	m_pMeshMngr = MeshManager::GetInstance();
-	m_bVisibleBS = false;
+	m_bVisibleBS = true;
 	m_bVisibleOBB = true;
 	m_bVisibleARBB = true;
 
@@ -16,6 +16,7 @@ void MyRigidBody::Init(void)
 	m_v3Center = ZERO_V3;
 	m_v3MinL = ZERO_V3;
 	m_v3MaxL = ZERO_V3;
+
 
 	m_v3MinG = ZERO_V3;
 	m_v3MaxG = ZERO_V3;
@@ -84,17 +85,34 @@ void MyRigidBody::SetModelMatrix(matrix4 a_m4ModelMatrix)
 
 	m_m4ToWorld = a_m4ModelMatrix;
 	
+	m_v3MaxG = m_v3MinG = m_m4ToWorld * vector4(m_vaLocalBB[0], 1);
+	//Starting with the first point
+
 	//your code goes here---------------------
-	m_v3MinG = m_v3MinL;
-	m_v3MaxG = m_v3MaxL;
+	//Get the max and min out of the list
+	for (int i = 1; i < 8; ++i) //Magic number. Plz no killl
+	{
+		vector3 v3TransformedCorner = m_m4ToWorld * vector4(m_vaLocalBB[i], 1);
+
+		if (m_v3MaxG.x < v3TransformedCorner.x) m_v3MaxG.x = v3TransformedCorner.x;
+		else if (m_v3MinG.x > v3TransformedCorner.x) m_v3MinG.x = v3TransformedCorner.x;
+
+		if (m_v3MaxG.y < v3TransformedCorner.y) m_v3MaxG.y = v3TransformedCorner.y;
+		else if (m_v3MinG.y > v3TransformedCorner.y) m_v3MinG.y = v3TransformedCorner.y;
+
+		if (m_v3MaxG.z < v3TransformedCorner.z) m_v3MaxG.z = v3TransformedCorner.z;
+		else if (m_v3MinG.z > v3TransformedCorner.z) m_v3MinG.z = v3TransformedCorner.z;
+	}
+	//Welll you can killl if you want.
 	//----------------------------------------
 
 	//we calculate the distance between min and max vectors
 	m_v3ARBBSize = m_v3MaxG - m_v3MinG;
 }
 //The big 3
-MyRigidBody::MyRigidBody(std::vector<vector3> a_pointList)
+MyRigidBody::MyRigidBody(std::vector<vector3> a_pointList, char n)
 {
+	name = n;
 	Init();
 	//Count the points of the incoming list
 	uint uVertexCount = a_pointList.size();
@@ -123,6 +141,19 @@ MyRigidBody::MyRigidBody(std::vector<vector3> a_pointList)
 	m_v3MinG = m_v3MinL;
 	m_v3MaxG = m_v3MaxL;
 
+	//Time to work some magic
+	m_vaLocalBB[0] = m_v3MinL;
+	m_vaLocalBB[1] = vector3(m_v3MinL.x, m_v3MinL.y, m_v3MaxL.z);
+	m_vaLocalBB[2] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MinL.z);
+	m_vaLocalBB[3] = vector3(m_v3MinL.x, m_v3MaxL.y, m_v3MaxL.z);
+	m_vaLocalBB[4] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MinL.z);
+	m_vaLocalBB[5] = vector3(m_v3MaxL.x, m_v3MinL.y, m_v3MaxL.z);
+	m_vaLocalBB[6] = vector3(m_v3MaxL.x, m_v3MaxL.y, m_v3MinL.z);
+	m_vaLocalBB[7] = m_v3MaxL;
+	//What do you mean this isn't magic? I made Wolfram Mathematica write this code for me!
+	//As tends to happpen whenever we're doing something for which there's some bettter alternative
+	//And I just think "This is suboptimal code anyway"
+	
 	//with the max and the min we calculate the center
 	m_v3Center = (m_v3MaxL + m_v3MinL) / 2.0f;
 
@@ -197,7 +228,7 @@ bool MyRigidBody::IsColliding(MyRigidBody* const other)
 {
 	//check if spheres are colliding
 	bool bColliding = true;
-	bColliding = (glm::distance(GetCenterGlobal(), other->GetCenterGlobal()) < m_fRadius + other->m_fRadius);
+	//bColliding = (glm::distance(GetCenterGlobal(), other->GetCenterGlobal()) < m_fRadius + other->m_fRadius);
 	//if they are check the Axis Aligned Bounding Box
 	if (bColliding) //they are colliding with bounding sphere
 	{

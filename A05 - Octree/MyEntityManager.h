@@ -6,6 +6,7 @@ Date: 2017/07
 #define __MYENTITYMANAGER_H_
 
 #include "MyEntity.h"
+#include "Octonode.h"
 
 namespace Simplex
 {
@@ -17,6 +18,8 @@ class MyEntityManager
 	uint m_uEntityCount = 0; //number of elements in the list
 	PEntity* m_mEntityArray = nullptr; //array of MyEntity pointers
 	static MyEntityManager* m_pInstance; // Singleton pointer
+	Octonode octreee;
+	vector3 cumulMin, cumulMax;
 public:
 	/*
 	Usage: Gets the singleton pointer

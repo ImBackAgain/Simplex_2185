@@ -78,6 +78,10 @@ void Application::ProcessKeyPressed(sf::Event a_event)
 	case sf::Keyboard::RShift:
 		m_bModifier = true;
 		break;
+	case sf::Keyboard::F1:
+		if (m_uOctantLevels > 0) m_uOctantLevels--;
+	case sf::Keyboard::F2:
+		m_uOctantLevels++;
 	}
 	
 	//gui

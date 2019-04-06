@@ -27,6 +27,7 @@ class MyRigidBody
 	vector3 m_v3Center = ZERO_V3; //center point in local space
 	vector3 m_v3MinL = ZERO_V3; //minimum coordinate in local space (for OBB)
 	vector3 m_v3MaxL = ZERO_V3; //maximum coordinate in local space (for OBB)
+	vector3 m_vaLocalBB[8]; //And here I just keeep the eight corners of the local AABB so I can use them to recalc the ARBB
 
 	vector3 m_v3MinG = ZERO_V3; //minimum coordinate in global space (for ARBB)
 	vector3 m_v3MaxG = ZERO_V3; //maximum coordinate in global space (for ARBB)
@@ -38,13 +39,15 @@ class MyRigidBody
 
 	std::set<MyRigidBody*> m_CollidingRBSet; //set of rigid bodies this one is colliding with
 
+
+	char name;
 public:
 	/*
 	Usage: Constructor
 	Arguments: std::vector<vector3> a_pointList -> list of points to make the Rigid Body for
 	Output: class object instance
 	*/
-	MyRigidBody(std::vector<vector3> a_pointList);
+	MyRigidBody(std::vector<vector3> a_pointList, char n);
 	/*
 	Usage: Copy Constructor
 	Arguments: class object to copy

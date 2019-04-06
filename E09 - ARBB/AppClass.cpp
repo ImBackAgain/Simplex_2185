@@ -18,12 +18,12 @@ void Application::InitVariables(void)
 	//creeper
 	m_pCreeper = new Model();
 	m_pCreeper->Load("Minecraft\\Creeper.obj");
-	m_pCreeperRB = new MyRigidBody(m_pCreeper->GetVertexList());
+	m_pCreeperRB = new MyRigidBody(m_pCreeper->GetVertexList(), 'c');
 
 	//steve
 	m_pSteve = new Model();
 	m_pSteve->Load("Minecraft\\Steve.obj");
-	m_pSteveRB= new MyRigidBody(m_pSteve->GetVertexList());
+	m_pSteveRB= new MyRigidBody(m_pSteve->GetVertexList(), 's');
 }
 void Application::Update(void)
 {
