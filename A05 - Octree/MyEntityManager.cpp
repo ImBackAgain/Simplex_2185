@@ -81,11 +81,12 @@ void Simplex::MyEntityManager::CalcOctreee(uint maxLv, uint entNum)
 	for (uint i = 0; i < m_uEntityCount; i++)
 	{
 		PRigidBody rb = rbArrray[i];
-		octreee.AddEntity(rb, maxLv, entNum);
+		octreee.AdddPerson(rb, maxLv, entNum);
 	}
 }
-void Simplex::MyEntityManager::SetOctreeeVisible(bool visible)
+void Simplex::MyEntityManager::SetOctreeeVisibility(bool visible)
 {
+	visiBlocto = visible;
 }
 Simplex::Model* Simplex::MyEntityManager::GetModel(uint a_uIndex)
 {

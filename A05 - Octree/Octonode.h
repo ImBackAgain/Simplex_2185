@@ -6,7 +6,7 @@ namespace Simplex
 class Octonode
 {
 	std::vector<MyRigidBody*> inside;
-	std::vector<Octonode*> partitions;	
+	std::vector<Octonode*> babies;	
 	vector3 center, extents;
 	bool broken = false;
 	void FindRenderman();
@@ -15,10 +15,11 @@ public:
 	static MeshManager* renderman;
 	Octonode();
 	Octonode(vector3 center, vector3 extents);
-	void AddEntity(MyRigidBody* newcomer, uint maxLv, uint entCount);
+	void AdddPerson(MyRigidBody* newcomer, uint maxLv, uint entCount);
 	void CheckColllisions();
 	~Octonode();
 	void Draw();
+	bool Contains(MyRigidBody *obj);
 };
 
 }

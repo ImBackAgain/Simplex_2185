@@ -78,11 +78,22 @@ void Application::ProcessKeyPressed(sf::Event a_event)
 	case sf::Keyboard::RShift:
 		m_bModifier = true;
 		break;
+	case sf::Keyboard::Subtract:
 	case sf::Keyboard::Z:
-		if (m_uOctantLevels > 0) m_uOctantLevels -= 2;
+		if (m_uOctantLevels > 1) m_uOctantLevels --;
+		m_pEntityMngr->CalcOctreee(m_uOctantLevels);
+		break;
+	case sf::Keyboard::Add:
 	case sf::Keyboard::X:
  		m_uOctantLevels++;
 		m_pEntityMngr->CalcOctreee(m_uOctantLevels);
+		break;
+	case sf::Keyboard::PageUp:
+		m_pEntityMngr->SetOctreeeVisibility(true);
+		break;
+	case sf::Keyboard::PageDown:
+		m_pEntityMngr->SetOctreeeVisibility(false);
+		break;
 	}
 	
 	//gui

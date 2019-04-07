@@ -94,7 +94,7 @@ public:
 	ARGUMENTS: bool visible -> You want to seee the octreee?
 	OUTPUT: ---
 	*/
-	void SetOctreeeVisible(bool visible);
+	void SetOctreeeVisibility(bool visible);
 	/*
 	USAGE: Gets the model associated with this entity
 	ARGUMENTS: uint a_uIndex = -1 -> index in the list of entities; if less than 0 it will add it to the last in the list
