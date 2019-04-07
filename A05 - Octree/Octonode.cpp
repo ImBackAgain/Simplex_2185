@@ -66,7 +66,7 @@ void Simplex::Octonode::CheckColllisions()
 	{
 		for (int i = 0; i + 1 < inside.size(); i++)
 		{
-			renderman->AddAxisToRenderList(IDENTITY_M4);//inside[i]
+			//renderman->AddAxisToRenderList(IDENTITY_M4);//inside[i]
 			for (uint j = i + 1; j < inside.size(); j++)
 			{
 				inside[i]->IsColliding(inside[j]);
@@ -123,18 +123,18 @@ bool Simplex::Octonode::Contains(MyRigidBody *obj)
 
 	float EPSILON = 0.1f;
 
-	if (thisMax.x < objMin.x - EPSILON) //this to the right of other
+	if (thisMax.x < objMin.x)
 		return false;
-	else if (thisMin.x > objMax.x + EPSILON) //this to the left of other
-		return false;
-
-	else if (thisMax.y < objMin.y - EPSILON) //this below of other
-		return false;
-	else if (thisMin.y > objMax.y + EPSILON) //this above of other
+	else if (thisMin.x > objMax.x)
 		return false;
 
-	else if (thisMax.z < objMin.z - EPSILON) //this behind of other
+	else if (thisMax.y < objMin.y)
 		return false;
-	else if (thisMin.z > objMax.z + EPSILON) //this in front of other
+	else if (thisMin.y > objMax.y)
+		return false;
+
+	else if (thisMax.z < objMin.z)
+		return false;
+	else if (thisMin.z > objMax.z)
 		return false;
 }
